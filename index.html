@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RowCoach Concept2 v2</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f172a">
+<style>
+:root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#38bdf8;--good:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(135deg,#0f172a,#172554);color:var(--text)}
+header{padding:26px 18px;text-align:center} h1{margin:0;font-size:32px} h2{margin:0 0 12px}.sub,.muted{color:var(--muted)}
+nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 14px 18px}
+button,.btn{border:0;border-radius:12px;padding:11px 14px;background:#1e293b;color:var(--text);cursor:pointer;font-weight:650}
+button.active,.btn.primary{background:var(--accent);color:#082f49}
+main{max-width:1120px;margin:0 auto;padding:0 16px 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.card{background:rgba(17,24,39,.88);border:1px solid rgba(148,163,184,.18);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.metric{font-size:30px;font-weight:800}.pill{display:inline-block;border-radius:999px;padding:5px 10px;background:#1e293b;color:#bae6fd;margin:3px}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}th,td{border-bottom:1px solid rgba(148,163,184,.18);padding:9px;text-align:left;font-size:13px}th{color:#bae6fd;background:#0f172a}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:var(--text)}
+label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}.section{display:none}.section.active{display:block}.ok{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+canvas{width:100%;height:220px;background:#020617;border-radius:12px}.small{font-size:13px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+pre{white-space:pre-wrap;background:#020617;padding:12px;border-radius:12px;color:#cbd5e1;overflow:auto}.tools{display:flex;gap:10px;flex-wrap:wrap}.tools button{width:auto}
+</style>
+</head>
+<body>
+<header>
+<h1>🚣 RowCoach Concept2 v2</h1>
+<div class="sub">Concept2-CSV 2026/2027 · Duplikat-Schutz · Logbuch · Fortschrittsanalyse</div>
+</header>
+<nav>
+<button class="tab active" data-tab="dash">Dashboard</button>
+<button class="tab" data-tab="plan">Trainingsplan</button>
+<button class="tab" data-tab="log">Logbuch</button>
+<button class="tab" data-tab="import">CSV-Import</button>
+<button class="tab" data-tab="tests">Leistungstests</button>
+<button class="tab" data-tab="settings">Profil</button>
+</nav>
+<main>
+<section id="dash" class="section active">
+<div class="grid">
+<div class="card"><h2>Heute</h2><div id="today"></div></div>
+<div class="card"><h2>Aktuelle Bestleistung</h2><div class="metric" id="best4k">–</div><div class="muted">ca. 4000 m / 4k-Test</div></div>
+<div class="card"><h2>Trainingszonen</h2><div id="zones"></div></div>
+<div class="card"><h2>Coach-Hinweis</h2><div id="coach"></div></div>
+</div>
+<div class="card" style="margin-top:14px"><h2>4k-Fortschritt</h2><canvas id="chart" width="900" height="260"></canvas></div>
+</section>
+
+<section id="plan" class="section"><div class="card"><h2>Wochenstruktur</h2>
+<table><tr><th>Einheit</th><th>Dauer</th><th>Ziel</th><th>Puls / Pace / SPM</th></tr>
+<tr><td>A – Zone 2</td><td>35–45 Min</td><td>Grundlage</td><td>112–122 bpm · ruhig · 20–22 SPM</td></tr>
+<tr><td>B – Intervalle</td><td>25 Min</td><td>VO₂max</td><td>5×2 Min hart / 2 Min locker · 141–150 bpm</td></tr>
+<tr><td>C – Schwelle</td><td>25 Min</td><td>4000-m-Leistung</td><td>131–141 bpm · 24–26 SPM</td></tr>
+<tr><td>D – Optional</td><td>25–40 Min</td><td>Erholung/Umfang</td><td>Zone 2, sehr kontrolliert</td></tr>
+</table></div></section>
+
+<section id="log" class="section">
+<div class="card"><h2>Training manuell eintragen</h2><div class="row">
+<div><label>Datum</label><input id="date" type="date"></div><div><label>Typ</label><select id="type"><option>Zone 2</option><option>Intervalle</option><option>Schwelle</option><option>4000m Test</option><option>Import</option><option>Sonstiges</option></select></div>
+<div><label>Dauer (min)</label><input id="dur" type="number" step="0.1"></div><div><label>Distanz (m)</label><input id="dist" type="number"></div>
+<div><label>Pace</label><input id="pace" placeholder="2:07.5"></div><div><label>Ø Watt</label><input id="watt" type="number"></div><div><label>Ø HF</label><input id="hr" type="number"></div><div><label>SPM</label><input id="spm" type="number"></div>
+</div><label>Notiz</label><textarea id="note"></textarea><br><br><button class="primary btn" onclick="addWorkout()">Speichern</button></div>
+<div class="card" style="margin-top:14px"><h2>Gespeicherte Einheiten</h2><div id="workouts"></div></div>
+</section>
+
+<section id="import" class="section">
+<div class="card"><h2>CSV-Import aus Concept2 Logbook</h2>
+<p class="muted">Diese Version erkennt den aktuellen Concept2-Export mit Spalten wie <b>Log ID</b>, <b>Work Time (Formatted)</b>, <b>Work Distance</b>, <b>Avg Watts</b>, <b>Avg Heart Rate</b> und <b>Stroke Rate/Cadence</b>. Bereits importierte Log IDs werden übersprungen.</p>
+<input type="file" id="csvFile" accept=".csv,text/csv"><br><br>
+<div class="tools"><button class="primary btn" onclick="importCSV()">CSV importieren</button><button onclick="exportBackup()">Backup exportieren</button><button onclick="clearAll()">Alle Daten löschen</button></div>
+<div id="importResult" style="margin-top:14px"></div>
+</div>
+</section>
+
+<section id="tests" class="section"><div class="card"><h2>Leistungstests</h2><p class="muted">RowCoach wertet Einheiten zwischen 3900 und 4100 m als 4k-Test. Bei leicht abweichender Distanz wird die 4000-m-Zeit aus der Pace hochgerechnet.</p><div id="testsList"></div></div></section>
+
+<section id="settings" class="section"><div class="card"><h2>Profil</h2>
+<div class="row"><div><label>Alter</label><input id="age" type="number" value="51"></div><div><label>Größe (cm)</label><input id="height" type="number" value="186"></div><div><label>Gewicht (kg)</label><input id="weight" type="number" value="80"></div><div><label>HFmax</label><input id="hfmax" type="number" value="150"></div><div><label>Ruhepuls</label><input id="resthr" type="number" value="55"></div></div><br>
+<button class="primary btn" onclick="saveProfile()">Profil speichern</button></div></section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+let data=JSON.parse(localStorage.getItem("rowcoach_v2")||'{"profile":{"age":51,"height":186,"weight":80,"hfmax":150,"resthr":55},"workouts":[]}');
+
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab,.section").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active");render()});
+function save(){localStorage.setItem("rowcoach_v2",JSON.stringify(data));render()}
+function n(v){if(v===undefined||v===null)return ""; return (""+v).trim()}
+function norm(s){return n(s).toLowerCase().replace(/[^a-z0-9]/g,"")}
+function toNum(v){let s=n(v).replace(",",".").replace(/[^0-9.\-]/g,""); return s===""?null:parseFloat(s)}
+function secToPace(s){if(s===null||s===undefined||isNaN(s))return "";let m=Math.floor(s/60),r=(s-m*60).toFixed(1);if(r<10)r="0"+r;return m+":"+r}
+function paceToSec(p){let m=n(p).replace(",",".").match(/(\d+):(\d+(?:\.\d+)?)/);return m?parseInt(m[1])*60+parseFloat(m[2]):null}
+function timeToSec(t){let s=n(t).replace(",","."); if(!s)return null; let p=s.split(":").map(parseFloat); if(p.length==3)return p[0]*3600+p[1]*60+p[2]; if(p.length==2)return p[0]*60+p[1]; return parseFloat(s)}
+function minToTime(m){if(!m&&m!==0)return "–";let min=Math.floor(m),sec=Math.round((m-min)*60);return min+":"+(sec<10?"0":"")+sec}
+function calcPace(distance,durMin){return distance&&durMin?secToPace((durMin*60)/(distance/500)):""}
+function calc4kMin(w){let paceSec=paceToSec(w.pace); if(paceSec)return paceSec*8/60; if(w.distance&&w.duration)return w.duration*(4000/w.distance); return w.duration}
+function is4k(w){return (w.distance>=3900&&w.distance<=4100)||n(w.type).includes("4000")}
+function zones(){let p=data.profile,hrr=p.hfmax-p.resthr;return [[1,.5,.6,"Erholung"],[2,.6,.7,"Grundlage"],[3,.7,.8,"Tempo"],[4,.8,.9,"Schwelle"],[5,.9,1,"VO₂max"]].map(z=>[z[0],Math.round(p.resthr+hrr*z[1]),Math.round(p.resthr+hrr*z[2]),z[3]])}
+function render(){
+ $("zones").innerHTML=zones().map(z=>`<div><span class="pill">Zone ${z[0]}</span> ${z[1]}–${z[2]} bpm · ${z[3]}</div>`).join("");
+ let w=data.workouts.sort((a,b)=>new Date(b.date)-new Date(a.date));
+ let tests=w.filter(is4k).map(x=>({...x, test4k:calc4kMin(x)})).sort((a,b)=>new Date(a.date)-new Date(b.date));
+ let best=tests.slice().sort((a,b)=>a.test4k-b.test4k)[0]; $("best4k").textContent=best?minToTime(best.test4k):"–";
+ $("today").innerHTML="<b>Empfehlung:</b><br>"+todayText(w);
+ $("coach").innerHTML=coachText(tests,w);
+ $("workouts").innerHTML=w.length?tableWorkouts(w):"<p class='muted'>Noch keine Einheiten.</p>";
+ $("testsList").innerHTML=tests.length?tableWorkouts(tests.slice().reverse(),true):"<p class='muted'>Noch keine 4k-nahen Einheiten.</p>";
+ ["age","height","weight","hfmax","resthr"].forEach(id=>$(id).value=data.profile[id]);
+ drawChart(tests);
+}
+function todayText(w){if(!w.length)return "Importiere zuerst deine Concept2-CSV."; let last=w[0]; let days=(Date.now()-new Date(last.date))/86400000; if(days<1)return "Heute eher locker oder Pause."; if(days<3)return "Zone 2, 35–45 Min oder Technik."; return "Wenn du frisch bist: Schwelle oder Intervalle."}
+function coachText(tests,w){if(!w.length)return "Importiere deine erste CSV. Danach analysiere ich Pace, Watt und 4k-Trend."; let avgP=w.slice(0,6).map(x=>paceToSec(x.pace)).filter(Boolean); let txt=`${w.length} Einheiten gespeichert. `; if(tests.length<2)return txt+"Sammle 2–3 4k-nahe Einheiten, dann wird der Trend belastbarer."; let last=tests[tests.length-1], prev=tests[tests.length-2], diff=(last.test4k-prev.test4k)*60; if(diff<0)txt+=`<span class='ok'>Sehr gut:</span> Deine letzte 4k-nahe Leistung war hochgerechnet ${Math.abs(diff).toFixed(0)} Sekunden schneller. `; else if(diff>0)txt+=`<span class='warn'>Hinweis:</span> Die letzte 4k-nahe Leistung war ${diff.toFixed(0)} Sekunden langsamer. Prüfe Regeneration und Intensität. `; else txt+="Stabiler Stand. "; if(avgP.length)txt+=`Aktuelle Ø-Pace der letzten Einheiten: ${secToPace(avgP.reduce((a,b)=>a+b,0)/avgP.length)}.`; return txt}
+function tableWorkouts(arr,tests=false){return `<table><tr><th>Datum</th><th>Typ</th><th>Dauer</th><th>Distanz</th><th>Pace</th><th>Watt</th><th>HF</th><th>SPM</th>${tests?"<th>4k hochgerechnet</th>":""}</tr>`+arr.map(x=>`<tr><td>${n(x.date).slice(0,10)}</td><td>${x.type||""}</td><td>${x.duration||""}</td><td>${x.distance||""}</td><td>${x.pace||""}</td><td>${x.watts||""}</td><td>${x.hr||""}</td><td>${x.spm||""}</td>${tests?`<td>${minToTime(x.test4k||calc4kMin(x))}</td>`:""}</tr>`).join("")+"</table>"}
+function addWorkout(){let d={id:"manual-"+Date.now(),date:$("date").value||new Date().toISOString().slice(0,10),type:$("type").value,duration:parseFloat($("dur").value)||"",distance:parseInt($("dist").value)||"",pace:$("pace").value,watts:$("watt").value,hr:$("hr").value,spm:$("spm").value,note:$("note").value}; if(!d.pace)d.pace=calcPace(d.distance,d.duration); data.workouts.push(d); save()}
+function saveProfile(){["age","height","weight","hfmax","resthr"].forEach(id=>data.profile[id]=parseFloat($(id).value)); save()}
+function drawChart(tests){let c=$("chart"),ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle="#020617";ctx.fillRect(0,0,c.width,c.height);if(tests.length<1){ctx.fillStyle="#94a3b8";ctx.fillText("Noch keine 4k-Daten",30,40);return}let vals=tests.map(x=>x.test4k),min=Math.min(...vals)-.2,max=Math.max(...vals)+.2,pad=40;if(max==min){max+=.1;min-=.1}ctx.strokeStyle="#334155";ctx.beginPath();ctx.moveTo(pad,20);ctx.lineTo(pad,c.height-pad);ctx.lineTo(c.width-20,c.height-pad);ctx.stroke();ctx.strokeStyle="#38bdf8";ctx.lineWidth=3;ctx.beginPath();tests.forEach((x,i)=>{let px=pad+i*((c.width-70)/Math.max(1,tests.length-1));let py=20+(x.test4k-min)/(max-min)*(c.height-70);if(i)ctx.lineTo(px,py);else ctx.moveTo(px,py)});ctx.stroke();ctx.fillStyle="#e5e7eb";ctx.font="14px sans-serif";tests.forEach((x,i)=>{let px=pad+i*((c.width-70)/Math.max(1,tests.length-1));let py=20+(x.test4k-min)/(max-min)*(c.height-70);ctx.beginPath();ctx.arc(px,py,5,0,7);ctx.fill();ctx.fillText(minToTime(x.test4k),px-18,py-10)})}
+function parseCSV(text){let rows=[],row=[],val="",q=false;for(let i=0;i<text.length;i++){let ch=text[i],nx=text[i+1];if(ch=='"'&&q&&nx=='"'){val+='"';i++}else if(ch=='"'){q=!q}else if(ch==","&&!q){row.push(val);val=""}else if((ch=="\n"||ch=="\r")&&!q){if(val||row.length){row.push(val);rows.push(row);row=[];val=""}if(ch=="\r"&&nx=="\n")i++}else val+=ch}if(val||row.length){row.push(val);rows.push(row)}return rows}
+function colMap(headers){let h=headers.map(norm); function find(names){for(let name of names){let k=norm(name);let i=h.findIndex(x=>x==k||x.includes(k));if(i>=0)return i}return -1}
+return {id:find(["Log ID","id"]),date:find(["Date","Datum"]),dist:find(["Work Distance","Distance","Distanz","meters"]),timef:find(["Work Time (Formatted)","Time","Zeit","Duration"]),times:find(["Work Time (Seconds)"]),pace:find(["Pace","/500"]),watts:find(["Avg Watts","Watts","Watt"]),hr:find(["Avg Heart Rate","Heart Rate","Puls"]),spm:find(["Stroke Rate/Cadence","Stroke Rate","SPM","s/m"]),type:find(["Type","Machine Type"]),comments:find(["Comments","Description"])}}
+function get(row,i){return i>=0?n(row[i]):""}
+function importCSV(){let file=$("csvFile").files[0]; if(!file){$("importResult").innerHTML="<span class='bad'>Bitte CSV-Datei wählen.</span>";return} let r=new FileReader(); r.onload=()=>{let rows=parseCSV(r.result).filter(x=>x.length>1); if(rows.length<2){$("importResult").innerHTML="<span class='bad'>Keine Daten erkannt.</span>";return} let head=rows[0], ci=colMap(head), existing=new Set(data.workouts.map(x=>n(x.id)).filter(Boolean)); let added=0, skipped=0, bad=0;
+for(let i=1;i<rows.length;i++){let row=rows[i], id=get(row,ci.id)||("row-"+get(row,ci.date)+"-"+get(row,ci.dist)+"-"+get(row,ci.timef)); if(existing.has(id)){skipped++;continue} let distance=parseInt(get(row,ci.dist).replace(/[^0-9]/g,""))||""; let sec=toNum(get(row,ci.times)); if(sec===null)sec=timeToSec(get(row,ci.timef)); let dur=sec?Math.round((sec/60)*10)/10:""; let pace=get(row,ci.pace)||calcPace(distance,dur); let date=(get(row,ci.date)||new Date().toISOString()).slice(0,10); if(!distance&&!dur){bad++;continue} let type=(distance>=3900&&distance<=4100)?"4000m Test":(get(row,ci.type)||"Import"); data.workouts.push({id,date,type,duration:dur,distance,pace,watts:get(row,ci.watts),hr:get(row,ci.hr),spm:get(row,ci.spm),note:get(row,ci.comments)||"Concept2 CSV"}); existing.add(id); added++}
+save(); $("importResult").innerHTML=`<span class='ok'>${added} Einheiten importiert.</span> ${skipped} Duplikate übersprungen. ${bad} Zeilen ohne Trainingsdaten übersprungen.<pre>Erkannte Spalten:\n${JSON.stringify(ci,null,2)}</pre>`}; r.readAsText(file)}
+function exportBackup(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="rowcoach_backup.json";a.click()}
+function clearAll(){if(confirm("Alle RowCoach-Daten in diesem Browser löschen?")){data.workouts=[];save()}}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("./service-worker.js").catch(()=>{});}
+render();
+</script>
+</body>
+</html>
