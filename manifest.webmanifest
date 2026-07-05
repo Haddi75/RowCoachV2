@@ -1,11 +1,11 @@
 {
-  "name": "RowCoach Concept2 v2",
+  "name": "RowCoach Concept2 v3",
   "short_name": "RowCoach",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "description": "Concept2 RowCoach mit aktuellem CSV-Import und Duplikat-Schutz.",
+  "description": "Concept2 RowCoach mit CSV-Import, Analyse, Kalender, Bestzeiten und Coach.",
   "icons": []
 }
